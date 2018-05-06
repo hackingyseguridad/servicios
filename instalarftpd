@@ -1,0 +1,3 @@
+#!/bin/bash
+apt-get install proftpd
+#nano /etc/proftpd/proftpd.conf
