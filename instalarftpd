@@ -1,6 +1,7 @@
 #!/bin/bash
-apt-get install proftpd
 #nano /etc/proftpd/proftpd.conf
+echo "instalando ProFTP"
+apt-get install proftpd
 sudo service proftpd start
 sudo update-rc.d proftpd enable
 sudo systemctl enable proftpd.service
