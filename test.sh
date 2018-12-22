@@ -1,4 +1,5 @@
 #!/bin/bash
+netstat -lepunt
 netstat -lntup
 netstat -plnt
 netstat -lup
