@@ -1,6 +1,6 @@
 # servicios
 
-Script, para instalar de forma automatica lo servicios: SSHd, TelnetD, Apache, VNCd, RDPd, ..
+Script, para instalar de forma automatica los servicios: SSHd, TelnetD, Apache, VNC, RDP, DNS Bind9 ..
 
 # www.hackingyseguridad.com
 
