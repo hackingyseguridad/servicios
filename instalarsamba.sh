@@ -1,6 +1,6 @@
 #!/bin/bash
 echo
-echo "Instala servidor samba y configura arranque automatico al inicio"
+echo "Instala servidor samba y configura arranque automatico al inicio .."
 echo 
 
 # (c) hacking y seguridad .com  2023
