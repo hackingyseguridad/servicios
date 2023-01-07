@@ -7,6 +7,7 @@ echo
 
 apt-get install samba
 systemctl restart smbd
+update-rc.d smbd enable
 
 # edimtamos /etc/samba/smb.conf
 #[web]
