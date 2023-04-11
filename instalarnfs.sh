@@ -19,4 +19,4 @@ ss -a|grep nfs
 # Ver consultas NFS por version
 nfsstat -c
 
-nmap --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p111,2049  -sVC -O localhost
+nmap -Pn --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p 2049,111  -sVC -O localhost
