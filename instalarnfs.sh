@@ -1,8 +1,8 @@
 #!/bin/bash
 #Instación en KaLi Linux NFS Server, puertos, 111/tcp, 2049/tcp!
 #vim /etc/export
-#
-
+#/tmp 192.168.1.0/24(rw,sync)
+#/var/www/html 192.168.1.0/24(rw,sync)
 
 echo "instalando NFS .."
 
@@ -21,5 +21,8 @@ ss -a|grep nfs
 
 # Ver consultas NFS por version
 nfsstat -c
-exportfs 
+
 nmap -Pn --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p 2049,111  -sVC -O localhost
+
+# Actualizar 
+exportfs 
