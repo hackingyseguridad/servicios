@@ -1,6 +1,9 @@
 #!/bin/bash
 #Instación en KaLi Linux NFS Server, puertos, 111/tcp, 2049/tcp!
 #vim /etc/export
+#
+
+
 echo "instalando NFS .."
 
 # Instación 
