@@ -15,3 +15,6 @@ systemctl status nfs-server
 
 # Ver proceso 
 ss -a|grep nfs
+
+# Ver NFS version 4
+nfsstat -4
