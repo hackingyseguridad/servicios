@@ -2,9 +2,10 @@
 #Instación en KaLi Linux NFS Server, puertos, 111/tcp, 2049/tcp!
 #vim /etc/export
 #
-#/tmp (rw,sync)
-#/var/www/html (rw,sync)
+# /var/www/html (rw,sync)
+# /tmp 192.168.1.250(sync,rw) 192.168.1.252(sync,rw)
 #
+
 
 echo "instalando NFS .."
 
