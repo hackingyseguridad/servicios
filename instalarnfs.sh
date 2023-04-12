@@ -3,7 +3,7 @@
 #vim /etc/export
 #
 # /var/www/html (rw,sync)
-# /tmp 192.168.1.250(sync,rw) 192.168.1.252(sync,ro)
+# /tmp 192.168.1.250(sync,rw) 192.168.1.252(sync,ro,no_root_squash)
 #
 # Opciones de exportación en el fichero /etc/exports ro
 # El sistema de archivos exportado sólo es de lectura, por lo que los hosts remotos no pueden modificar los datos compartidos. rw
