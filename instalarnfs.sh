@@ -3,14 +3,14 @@
 #vim /etc/export
 #
 # /var/www/html (rw,sync)
-# /tmp 192.168.1.250(sync,rw) 192.168.1.252(sync,rw)
+# /tmp 192.168.1.250(sync,rw) 192.168.1.252(sync,ro)
 #
 # Opciones de exportación en el fichero /etc/exports ro
 # El sistema de archivos exportado sólo es de lectura, por lo que los hosts remotos no pueden modificar los datos compartidos. rw
 # Para permitir la edición a través de los hosts remotos (leer y escribir), es necesario especificar la opción de ‘rw’. sync
 # La sincronización por defecto significa que el servidor NFS no responderá a las solicitudes antes de que los cambios se escriban en el disco. Para permitir las escrituras asíncronas en su lugar, es necesario especificar la opción ‘async‘. root_squash
 # Para evitar que los usuarios root conectados remotamente tengan privilegios de root, se puede usar la opción ‘root_squash’. Si queremos que el usuario root del servidor remoto tenga privilegios de root, usaremos no_root_squash.  wdelay
-# Las escrituras en disco se retrasan si el servidor NFS sospecha que hay otra escritura prioritara de forma inminente. Esta opción puede mejorar el rendimiento de escritura en disco al reducir el número de accesos al disco, reduciendo la sobrecarga de escritura.
+# .
 
 echo "instalando NFS .."
 
