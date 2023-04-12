@@ -27,7 +27,7 @@ nfsstat -c
 nmap -Pn --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p 2049,111  -sVC -O localhost
 
 # Actualizar 
-exportfs 
+ exportfs -ra
 
 # mount -t nfs4 server:/ /mnt/tmp
 
