@@ -32,9 +32,13 @@ nfsstat -c
 
 nmap -Pn --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p 2049,111  -sVC -O localhost
 
+
 # Actualizar 
  exportfs -ra
+ sudo service nfs-kernel-service restart
 
+Desde el lado cliente:
+sudo showmount --exports 192.168.1.200
 # mount -t nfs4 server:/ /mnt/tmp
 
 
