@@ -29,19 +29,17 @@ ss -a|grep nfs
 
 # Ver consultas NFS por version
 nfsstat -c
-
 nmap -Pn --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p 2049,111  -sVC -O localhost
-
 
 # Actualizar 
  exportfs -ra
- sudo service nfs-kernel-service restart
+ sudo service nfs-kernel-server restart
 
-Desde el lado cliente:
-sudo showmount --exports 192.168.1.200
+# Desde el lado cliente:
+# sudo showmount --exports 192.168.1.200
 # mount -t nfs4 server:/ /mnt/tmp
-sudo mount -t nfs4 192.168.1.200:/tmp /tmp 
-nmap -Pn --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p 2049,111  -sVC -O localhost
+# sudo mount -t nfs4 192.168.1.200:/tmp /tmp 
+# nmap -Pn --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p 2049,111  -sVC -O localhost
 
 
 
