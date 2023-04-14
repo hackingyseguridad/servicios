@@ -37,7 +37,7 @@ nmap -Pn --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p 2049,111  -sVC 
 
 # Desde el lado cliente:
 # sudo showmount --exports 192.168.1.200
-# mount -t nfs4 server:/ /mnt/tmp
+# sudo mount -t nfs4 192.168.1.200:/var/www/html /web/
 # sudo mount -t nfs4 192.168.1.200:/tmp /tmp 
 # nmap -Pn --script=nfs-ls.nse,nfs-showmount.nse,nfs-statfs.nse -p 2049,111  -sVC -O 192.168.1.200
 
