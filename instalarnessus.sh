@@ -12,3 +12,5 @@ sudo systemctl start nessusd
 sudo systemctl start nessusd.service
 echo "abrir url https://localhost:8834/"
 echo "Numero de licencia ZTZL-Z5P3-6KBX-PM4K"
+
+# Desinstalar con: dpkg --purge  nessus
