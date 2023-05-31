@@ -1,5 +1,5 @@
 # Instalacion del escaner de vulnerabilidades Nessusd
-
+#!/bin/bash
 echo
 echo "Descargando ultima versión para Linux Debian ...  https://www.tenable.com/downloads "
 echo
