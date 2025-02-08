@@ -1,7 +1,8 @@
-
+#!/bin/bash
 echo 
 echo "Login Auth Basic Apache Server" 
 echo "No explorar carpertas"
+echo "hackingyseguridad.com 2025"
 echo 
 
 sudo apt-get update
@@ -19,6 +20,16 @@ cat /etc/apache2/.htpasswd
 #      Require valid-user
 #  </Directory>
 #
+CONFIG_FILE="/etc/apache2/sites-enabled/000-default.conf"
+# Añade la configuración al final del archivo
+cat << 'EOF' >> "$CONFIG_FILE"
+<Directory "/var/www/html">
+    AuthType Basic
+    AuthName "Restricted Content"
+    AuthUserFile /etc/apache2/.htpasswd
+    Require valid-user
+</Directory>
+EOF
 
 sudo apache2ctl configtest
 sudo a2dismod --force autoindex
