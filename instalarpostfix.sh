@@ -14,7 +14,7 @@ cat << "INFO"
 ╬═╬
 ╬═╬
 ╬═╬    subrutina instalar postfix V.1.0 
-╬═╬    hackingyseguridad.com
+╬═╬    http://www.hackingyseguridad.com
 ╬═╬⛑/
 ╬═╬/▌
 ╬═╬/  \
