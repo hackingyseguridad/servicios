@@ -32,7 +32,6 @@ echo
 echo "......"
 echo
 
-
 sudo apt-get update 
 sudo apt install openvas
 sudo apt install gvm
@@ -42,8 +41,22 @@ sudo pg_upgradecluster 15 main 17
 
 sudo gvm-setup
 sudo gvmd --user=admin --new-password=Passwd00
+
+runuser -u postgres -- /usr/share/gvm/create-postgresql-database
+
+chmod 777 /var/log/gvm/gvmd.log
+runuser -u _gvm -- gvmd --create-user=admin --password=Passwd00
+
+chown -R _gvm:_gvm /var/lib/openvas/
+chmod -R 755 /var/lib/openvas/
+
+
+sudo systemctl restart gvmd
+sudo systemctl restart openvas-scanner
+
+sudo gvm-check-setup
+
 sudo gvm-start
 
 echo
 echo "https://localhost:9392"
-echo
