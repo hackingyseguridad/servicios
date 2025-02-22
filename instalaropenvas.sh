@@ -50,9 +50,7 @@ runuser -u _gvm -- gvmd --create-user=admin --password=Passwd00
 chown -R _gvm:_gvm /var/lib/openvas/
 chmod -R 755 /var/lib/openvas/
 
-
 sudo systemctl restart gvmd
-sudo systemctl restart openvas-scanner
 
 sudo gvm-check-setup
 
