@@ -1,4 +1,5 @@
-
+#!/bin/bash
+# hackingyseguriad.com 2025
 
 
 # persisntencia.sh es como hacer que un Script se haga persistente en un sistema
