@@ -1,5 +1,5 @@
 ##
-# Instalar y configurar DNSmasq
+# Instalar y configurar  DNSmasq Server DNS
 # Config de ejemplo para suplantar dominio 
 # hackingyseguridad.com 2026
 ##
