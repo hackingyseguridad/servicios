@@ -1,5 +1,14 @@
-# Instalar si no está
+###@@#############################
+# Instalar y configurar DNSmasq
+# 
+# hackingyseguridad.com 2026
+#################################
+
+
+# Instalar 
 apt-get install dnsmasq
+# arrancar servicio!
+service dnsmasq start
 
 # Configurar
 cat > /tmp/dnsmasq.conf << EOF
