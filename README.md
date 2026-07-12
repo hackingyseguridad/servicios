@@ -2,6 +2,29 @@
 
 subrutinas, para instalar de forma automatica los servicios: SSHd, TelnetD, Apache web server, servidor VNC,  servidor RDP, servidor DNS Bind9, servidor Samba, NFS, SMTP postfix, OpenVAS ..
 
+| Necesidad del usuario | Script | Servicio |
+|---|---|---|
+| Acceso remoto por terminal cifrado | `instalarssh.sh` | SSH / sshd |
+| Acceso remoto en texto claro (laboratorio/CTF) | `instalartelnet.sh` | Telnet |
+| Escritorio remoto gráfico (protocolo Microsoft) | `instalarrdp.sh` | RDP |
+| Escritorio remoto gráfico (VNC estándar) | `instalarvnc.sh` | VNC |
+| Escritorio remoto gráfico (VNC de alto rendimiento) | `instalartigervnc.sh` | TigerVNC |
+| Consulta de usuarios del sistema (legacy) | `finger.sh` | Finger |
+| Servidor web | `instalarapache.sh` / `instalarapache2.sh` | Apache / Apache2 |
+| Gestión/arranque del demonio HTTP | `httpd.sh` | HTTPd |
+| Servidor DNS autoritativo/recursivo completo | `instalarbind9.sh` | Bind9 |
+| Servidor DNS/DHCP ligero | `instalardnsmasq.sh` | dnsmasq |
+| Servidor FTP | `instalarftpd` | FTP |
+| Compartición de ficheros estilo Unix | `instalarnfs.sh` | NFS |
+| Compartición de ficheros estilo Windows (SMB/CIFS) | `instalarsamba.sh` | Samba |
+| Servidor de correo saliente (SMTP) | `instalarpostfix.sh` | Postfix |
+| Escáner de vulnerabilidades (comercial) | `instalarnessus.sh` | Nessus |
+| Escáner de vulnerabilidades (open source) | `instalaropenvas.sh` | OpenVAS |
+| Técnica de persistencia en el sistema (laboratorio) | `persistencia.sh` / `persistencia2.sh` | Persistencia |
+| Validar que el entorno/servicio quedó operativo | `test.sh` | Pruebas |
+
+---
+
 ## Descripción
 
 Este repositorio agrupa subrutinas independientes (una por servicio) que automatizan la instalación, arranque y habilitación en el inicio del sistema de los demonios de red más comunes: SSH, Telnet, Apache, DNS (Bind9 y dnsmasq), FTP, NFS, Samba, correo (Postfix), escritorio remoto (RDP/VNC), escáneres de vulnerabilidades (Nessus/OpenVAS) y scripts auxiliares de persistencia.
