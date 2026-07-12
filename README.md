@@ -102,6 +102,168 @@ chmod +x instalarssh.sh
 
 Cada script sigue el mismo patrón: instala el paquete correspondiente vía `apt-get`, arranca el servicio y lo habilita para que se inicie automáticamente en el arranque del sistema (`update-rc.d` / `systemctl enable`).
 
+
+## FASE 3 — Despliegue por servicio
+
+### SSH
+
+```bash
+sudo ./instalarssh.sh
+# Equivale a: apt-get install ssh && service ssh start && update-rc.d ssh enable
+#             && systemctl enable ssh.service
+ssh usuario@localhost   # verificación
+```
+
+### Telnet (inseguro — solo laboratorio)
+
+```bash
+sudo ./instalartelnet.sh
+telnet localhost
+```
+
+### Apache / servidor web
+
+```bash
+sudo ./instalarapache.sh     # o instalarapache2.sh según versión deseada
+curl -I http://localhost
+```
+
+### DNS — Bind9 (servidor completo)
+
+```bash
+sudo ./instalarbind9.sh
+dig @localhost example.com
+# Configuración de zonas: revisar conf/ en el repositorio
+```
+
+### DNS/DHCP ligero — dnsmasq
+
+```bash
+sudo ./instalardnsmasq.sh
+```
+
+### FTP
+
+```bash
+sudo ./instalarftpd
+ftp localhost
+```
+
+### NFS
+
+```bash
+sudo ./instalarnfs.sh
+showmount -e localhost
+```
+
+### Samba (SMB/CIFS)
+
+```bash
+sudo ./instalarsamba.sh
+smbclient -L localhost -N
+```
+
+### Correo — Postfix (SMTP)
+
+```bash
+sudo ./instalarpostfix.sh
+telnet localhost 25
+```
+
+### RDP
+
+```bash
+sudo ./instalarrdp.sh
+# Cliente de verificación: xfreerdp /v:localhost
+```
+
+### VNC / TigerVNC
+
+```bash
+sudo ./instalarvnc.sh        # o instalartigervnc.sh
+vncviewer localhost:1
+```
+
+### Finger
+
+```bash
+sudo ./finger.sh
+finger usuario@localhost
+```
+
+### Escáneres de vulnerabilidades
+
+```bash
+sudo ./instalarnessus.sh     # interfaz web en https://localhost:8834
+sudo ./instalaropenvas.sh    # interfaz web en https://localhost:9392
+```
+
+### Persistencia (laboratorio de post-explotación)
+
+```bash
+sudo ./persistencia.sh
+sudo ./persistencia2.sh      # variante alternativa
+```
+
+---
+
+## FASE 4 — Verificación post-instalación
+
+```bash
+# Comprobar que el servicio está activo y habilitado en el arranque
+systemctl status <servicio>
+systemctl is-enabled <servicio>
+
+# Comprobar puerto en escucha
+ss -tulnp | grep <puerto>
+
+# Script de pruebas del propio repositorio
+bash test.sh
+```
+
+| Servicio | Puerto por defecto |
+|---|---|
+| SSH | 22 |
+| Telnet | 23 |
+| HTTP (Apache) | 80 |
+| DNS (Bind9/dnsmasq) | 53 |
+| FTP | 21 |
+| NFS | 2049 |
+| Samba | 139 / 445 |
+| SMTP (Postfix) | 25 |
+| RDP | 3389 |
+| VNC | 5900+ |
+| Finger | 79 |
+| Nessus | 8834 |
+| OpenVAS | 9392 |
+
+---
+
+## FASE 5 — Patrón para crear un nuevo script de instalación
+
+Todos los scripts del repositorio siguen la misma estructura mínima. Para añadir un servicio
+nuevo respetando el estilo del repositorio:
+
+```bash
+#!/bin/bash
+echo Script instalar/habilitar <servicio> y configurar inicio automatico
+
+sudo apt-get install -y <paquete>
+sudo service <servicio> start
+sudo update-rc.d <servicio> enable
+sudo systemctl enable <servicio>.service
+```
+
+Convenciones del repositorio:
+- Nombre de fichero: `instalar<servicio>.sh` (todo en minúsculas, sin espacios ni acentos).
+- Primera línea tras el shebang: `echo` descriptivo de lo que hace el script.
+- Habilitar el servicio tanto con `update-rc.d` (SysV, compatibilidad Debian antigua) como con
+  `systemctl enable` (systemd, Debian moderno) para máxima compatibilidad.
+- Ficheros de configuración adicionales van en `conf/`.
+
+---
+
+
 ## Aviso legal y uso ético
 
 Estos scripts están pensados para **entornos de laboratorio, formación y pruebas autorizadas** (pentesting, CTF, hardening, investigación en ciberseguridad). Algunos de ellos habilitan servicios inseguros por diseño (p. ej. Telnet, FTP sin cifrar) o técnicas de persistencia propias de escenarios de post-explotación.
