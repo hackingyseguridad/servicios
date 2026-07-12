@@ -96,5 +96,3 @@ Este proyecto se distribuye bajo licencia **GPL-3.0**. Consulta el fichero [`LIC
 [www.hackingyseguridad.com](http://www.hackingyseguridad.com/)
 
 
-## http://www.hackingyseguridad.com/
-
