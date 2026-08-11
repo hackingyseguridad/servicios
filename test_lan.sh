@@ -1,5 +1,10 @@
 #!/bin/bash
-# speedtest-verified.sh - Versión corregida
+# test de velocidad LAN, en un mismo script lando servidor y test 
+# requiere abrir un puerto en el lado servidor , por ejemplo 9999 
+# en el lado servidor p.ej.:   sh test_lan.sh  sh test2.sh -s 9999 99999999
+# en la lado clinete p.ej.: sh test_lan.sh -c 192.168.1.250 9999 9999999
+# nos dara en el resumen la velodaidad en  MB/s y Mbps
+# (R) hackingyseguridad.com 2025
 
 PORT=${1:-9999}
 DURATION=${2:-10}
