@@ -84,7 +84,7 @@ run_server() {
 
 run_client() {
     local target_ip=$1
-
+    
     echo -e "${GREEN}[CLIENT] Conectando a $target_ip:$PORT${NC}"
     echo ""
 
@@ -93,67 +93,89 @@ run_client() {
         exit 1
     fi
 
-    # Limitar duración máxima para evitar problemas
+    # Limitar duración máxima
     if [ $DURATION -gt 3600 ]; then
-        echo -e "${YELLOW}⚠️ Duración muy larga, limitando a 3600 segundos (1 hora)${NC}"
-        DURATION=3600
+        echo -e "${YELLOW}⚠️ Duración muy larga, limitando a 60 segundos${NC}"
+        DURATION=60
+    fi
+    
+    # Si la duración es muy corta, usar mínimo 5 segundos
+    if [ $DURATION -lt 5 ]; then
+        echo -e "${YELLOW}⚠️ Duración muy corta, usando 5 segundos${NC}"
+        DURATION=5
     fi
 
+    # Usar menos datos para evitar problemas de memoria
+    DATA_SIZE_MB=$((DURATION * 10))
+    
     echo ""
     echo -e "${YELLOW}[CLIENT] Iniciando prueba de $DURATION segundos...${NC}"
-    echo -e "${YELLOW}[CLIENT] Enviando datos...${NC}"
+    echo -e "${YELLOW}[CLIENT] Enviando ${DATA_SIZE_MB}MB de datos...${NC}"
+    echo ""
 
-    # Datos a enviar (10MB por segundo)
-    DATA_SIZE_MB=$((DURATION * 10))
-
-    # Medir tiempo con segundos enteros
+    # Medir tiempo
     START_TIME=$(date +%s)
-
-    # Enviar datos
-    dd if=/dev/zero bs=1M count=$DATA_SIZE_MB 2>/dev/null | nc $target_ip $PORT > /dev/null
-
+    
+    # Enviar datos (usar /dev/zero para evitar problemas de rendimiento)
+    dd if=/dev/zero bs=1M count=$DATA_SIZE_MB 2>/dev/null | nc $target_ip $PORT > /dev/null 2>&1
+    
     END_TIME=$(date +%s)
     TOTAL_TIME=$((END_TIME - START_TIME))
-
-    # Si el tiempo es 0, usar 1 para evitar división por cero
+    
+    # Si el tiempo es 0, usar 1
     if [ $TOTAL_TIME -eq 0 ]; then
         TOTAL_TIME=1
     fi
-
-    # Calcular velocidad usando división de enteros
+    
+    # Calcular velocidad (entero)
     SPEED_MB_S=$((DATA_SIZE_MB / TOTAL_TIME))
-
-    # Obtener decimales manualmente
+    
+    # Calcular decimales manualmente
     SPEED_DECIMAL=$(( (DATA_SIZE_MB * 100) / TOTAL_TIME - SPEED_MB_S * 100 ))
     if [ $SPEED_DECIMAL -lt 10 ]; then
         SPEED_DECIMAL="0${SPEED_DECIMAL}"
     fi
-
+    
+    # Calcular Mbps
+    SPEED_MBPS=$((SPEED_MB_S * 8))
+    SPEED_MBPS_DECIMAL=$((SPEED_DECIMAL * 8))
+    if [ $SPEED_MBPS_DECIMAL -ge 100 ]; then
+        SPEED_MBPS_EXTRA=$((SPEED_MBPS_DECIMAL / 100))
+        SPEED_MBPS=$((SPEED_MBPS + SPEED_MBPS_EXTRA))
+        SPEED_MBPS_DECIMAL=$((SPEED_MBPS_DECIMAL - SPEED_MBPS_EXTRA * 100))
+    fi
+    if [ $SPEED_MBPS_DECIMAL -lt 10 ]; then
+        SPEED_MBPS_DECIMAL="0${SPEED_MBPS_DECIMAL}"
+    fi
+    
     echo ""
     echo -e "${GREEN}=== RESUMEN DE PRUEBA ===${NC}"
     echo -e "📊 Tiempo total: ${YELLOW}${TOTAL_TIME}${NC} segundos"
     echo -e "📦 Datos enviados: ${YELLOW}${DATA_SIZE_MB}${NC} MB"
-    echo -e "🚀 Velocidad de transferencia: ${GREEN}${SPEED_MB_S}.${SPEED_DECIMAL} MB/s${NC}"
-
-    # Calcular Mbps
-    SPEED_MBPS=$((SPEED_MB_S * 8))
-    echo -e "📈 Velocidad en Mbps: ${BLUE}${SPEED_MBPS}.${SPEED_DECIMAL}${NC} Mbps"
-
+    echo -e "🚀 Velocidad: ${GREEN}${SPEED_MB_S}.${SPEED_DECIMAL} MB/s${NC}"
+    echo -e "📈 Velocidad: ${BLUE}${SPEED_MBPS}.${SPEED_MBPS_DECIMAL} Mbps${NC}"
+    
     # Interpretación
     echo ""
-    echo -e "${BLUE}Interpretación de velocidad:${NC}"
-    if [ $SPEED_MB_S -ge 100 ]; then
-        echo -e "${GREEN}✅ Excelente - Red de alta velocidad${NC}"
-    elif [ $SPEED_MB_S -ge 50 ]; then
-        echo -e "${GREEN}✅ Muy buena - Red Gigabit${NC}"
-    elif [ $SPEED_MB_S -ge 10 ]; then
-        echo -e "${YELLOW}⚠️ Buena - Red Fast Ethernet${NC}"
-    elif [ $SPEED_MB_S -ge 1 ]; then
-        echo -e "${YELLOW}⚠️ Aceptable - Red de velocidad media${NC}"
+    echo -e "${BLUE}Interpretación:${NC}"
+    
+    # Usar velocidad en Mbps para comparación
+    SPEED_COMPARE=$SPEED_MB_S
+    
+    if [ $SPEED_COMPARE -ge 1000 ]; then
+        echo -e "${GREEN}✅🚀 EXCEPCIONAL (10Gbps+)${NC}"
+    elif [ $SPEED_COMPARE -ge 100 ]; then
+        echo -e "${GREEN}✅ Excelente (10Gbps)${NC}"
+    elif [ $SPEED_COMPARE -ge 50 ]; then
+        echo -e "${GREEN}✅ Muy buena (Gigabit+)${NC}"
+    elif [ $SPEED_COMPARE -ge 10 ]; then
+        echo -e "${GREEN}✅ Buena (Gigabit)${NC}"
+    elif [ $SPEED_COMPARE -ge 1 ]; then
+        echo -e "${YELLOW}⚠️ Aceptable (Fast Ethernet)${NC}"
     else
         echo -e "${RED}❌ Lenta - Verificar conexión${NC}"
     fi
-
+    
     echo -e "${GREEN}========================${NC}"
 }
 
@@ -224,4 +246,3 @@ case "$MODE" in
         exit 1
         ;;
 esac
-
