@@ -6,12 +6,16 @@
 # nos dara en el resumen la velodaidad en  MB/s y Mbps
 # (R) hackingyseguridad.com 2025
 
+#!/bin/bash
+# speedtest-real.sh - Test de velocidad REAL para redes
+
 PORT=${1:-9999}
 DURATION=${2:-10}
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 show_help() {
@@ -25,158 +29,201 @@ show_help() {
     echo "  $0 -c 192.168.1.250 9999 30  # Cliente"
 }
 
-check_connection() {
-    local ip=$1
-    local port=$2
-
-    echo -e "${YELLOW}[CHECK] Verificando conectividad...${NC}"
-
-    # 1. Verificar ping
-    if ping -c 1 -W 2 $ip >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Ping a $ip exitoso${NC}"
-    else
-        echo -e "${RED}✗ No hay respuesta ping a $ip${NC}"
-        echo -e "${YELLOW}  ¿El equipo está encendido y en la misma red?${NC}"
-        return 1
-    fi
-
-    # 2. Verificar puerto
-    if nc -zv -w 3 $ip $port 2>/dev/null; then
-        echo -e "${GREEN}✓ Puerto $port está abierto en $ip${NC}"
-        return 0
-    else
-        echo -e "${RED}✗ Puerto $port no accesible en $ip${NC}"
-        echo -e "${YELLOW}  Posibles causas:${NC}"
-        echo -e "${YELLOW}  1. El servidor no está ejecutándose${NC}"
-        echo -e "${YELLOW}  2. Firewall bloqueando el puerto${NC}"
-        echo -e "${YELLOW}  3. IP incorrecta${NC}"
-        echo -e ""
-        echo -e "${YELLOW}  En el servidor ejecuta:${NC}"
-        echo -e "${GREEN}  nc -l -p $port${NC}"
-        echo -e "${YELLOW}  O usa el script con -s:${NC}"
-        echo -e "${GREEN}  $0 -s $port${NC}"
-        return 1
-    fi
-}
-
 run_server() {
     echo -e "${GREEN}[SERVER] Iniciando en puerto $PORT${NC}"
-    echo -e "${YELLOW}[SERVER] Esperando conexión desde el cliente...${NC}"
-    echo -e "${YELLOW}[SERVER] Presiona Ctrl+C para detener${NC}"
+    echo -e "${YELLOW}[SERVER] Servidor activo por $DURATION segundos...${NC}"
     echo ""
-
-    # Mostrar IPs disponibles
-    echo -e "${BLUE}IPs disponibles:${NC}"
-    ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | while read ip; do
-        echo -e "  ${GREEN}$ip${NC}"
-    done
+    
+    # Mostrar IP
+    MY_IP=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -1)
+    echo -e "${BLUE}Tu IP: ${GREEN}$MY_IP${NC}"
+    echo -e "${YELLOW}Cliente debe conectar a: $MY_IP:$PORT${NC}"
     echo ""
-
-    # Servidor con timeout
-    timeout $DURATION nc -l -p $PORT > /dev/null
-
-    if [ $? -eq 124 ]; then
-        echo -e "${GREEN}[SERVER] Prueba completada (tiempo expirado)${NC}"
-    else
-        echo -e "${GREEN}[SERVER] Servidor finalizado${NC}"
-    fi
+    echo -e "${YELLOW}Esperando conexión...${NC}"
+    
+    # Servidor que recibe datos y los descarta
+    # -q 0: cierra inmediatamente después de que el cliente se desconecte
+    nc -l -p $PORT -q 1 > /dev/null 2>&1 &
+    SERVER_PID=$!
+    
+    # Esperar la duración especificada
+    sleep $DURATION
+    
+    # Terminar servidor
+    kill $SERVER_PID 2>/dev/null
+    echo -e "${GREEN}[SERVER] Prueba completada${NC}"
 }
 
 run_client() {
     local target_ip=$1
+    local total_bytes=0
+    local real_time=0
     
     echo -e "${GREEN}[CLIENT] Conectando a $target_ip:$PORT${NC}"
     echo ""
-
-    # Verificar conexión antes de empezar
-    if ! check_connection $target_ip $PORT; then
+    
+    # Verificar conexión
+    echo -e "${YELLOW}[CHECK] Verificando servidor...${NC}"
+    if ! nc -zv -w 3 $target_ip $PORT 2>/dev/null; then
+        echo -e "${RED}✗ No se puede conectar al servidor${NC}"
+        echo -e "${YELLOW}Asegúrate de ejecutar primero: $0 -s $PORT${NC}"
         exit 1
     fi
-
-    # Limitar duración máxima
-    if [ $DURATION -gt 3600 ]; then
-        echo -e "${YELLOW}⚠️ Duración muy larga, limitando a 60 segundos${NC}"
-        DURATION=60
-    fi
+    echo -e "${GREEN}✓ Servidor disponible${NC}"
+    echo ""
     
-    # Si la duración es muy corta, usar mínimo 5 segundos
-    if [ $DURATION -lt 5 ]; then
-        echo -e "${YELLOW}⚠️ Duración muy corta, usando 5 segundos${NC}"
+    # Limitar duración para pruebas reales
+    if [ $DURATION -gt 60 ]; then
+        echo -e "${YELLOW}⚠️ Limitando duración a 60 segundos${NC}"
+        DURATION=60
+    elif [ $DURATION -lt 5 ]; then
+        echo -e "${YELLOW}⚠️ Usando duración mínima de 5 segundos${NC}"
         DURATION=5
     fi
-
-    # Usar menos datos para evitar problemas de memoria
-    DATA_SIZE_MB=$((DURATION * 10))
     
+    # Calcular tamaño total (10MB/s para asegurar saturación)
+    TOTAL_MB=$((DURATION * 10))
+    TOTAL_BYTES=$((TOTAL_MB * 1048576))
+    
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}📡 Prueba de velocidad REAL${NC}"
+    echo -e "   Duración: ${BLUE}$DURATION segundos${NC}"
+    echo -e "   Datos a enviar: ${BLUE}${TOTAL_MB} MB${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "${YELLOW}[CLIENT] Iniciando prueba de $DURATION segundos...${NC}"
-    echo -e "${YELLOW}[CLIENT] Enviando ${DATA_SIZE_MB}MB de datos...${NC}"
-    echo ""
-
-    # Medir tiempo
-    START_TIME=$(date +%s)
+    echo -e "${YELLOW}Enviando datos...${NC}"
     
-    # Enviar datos (usar /dev/zero para evitar problemas de rendimiento)
-    dd if=/dev/zero bs=1M count=$DATA_SIZE_MB 2>/dev/null | nc $target_ip $PORT > /dev/null 2>&1
+    # Crear archivo temporal con datos reales (no comprimibles)
+    # Usar /dev/urandom para datos realistas
+    TEMP_FILE="/tmp/speedtest_$$.dat"
+    dd if=/dev/urandom of=$TEMP_FILE bs=1M count=$TOTAL_MB 2>/dev/null
     
-    END_TIME=$(date +%s)
-    TOTAL_TIME=$((END_TIME - START_TIME))
+    # Medir tiempo REAL de transferencia
+    START_TIME=$(date +%s.%N)
     
-    # Si el tiempo es 0, usar 1
-    if [ $TOTAL_TIME -eq 0 ]; then
-        TOTAL_TIME=1
-    fi
+    # Enviar archivo y medir tiempo
+    nc $target_ip $PORT < $TEMP_FILE 2>/dev/null
     
-    # Calcular velocidad (entero)
-    SPEED_MB_S=$((DATA_SIZE_MB / TOTAL_TIME))
+    END_TIME=$(date +%s.%N)
     
-    # Calcular decimales manualmente
-    SPEED_DECIMAL=$(( (DATA_SIZE_MB * 100) / TOTAL_TIME - SPEED_MB_S * 100 ))
-    if [ $SPEED_DECIMAL -lt 10 ]; then
-        SPEED_DECIMAL="0${SPEED_DECIMAL}"
-    fi
-    
-    # Calcular Mbps
-    SPEED_MBPS=$((SPEED_MB_S * 8))
-    SPEED_MBPS_DECIMAL=$((SPEED_DECIMAL * 8))
-    if [ $SPEED_MBPS_DECIMAL -ge 100 ]; then
-        SPEED_MBPS_EXTRA=$((SPEED_MBPS_DECIMAL / 100))
-        SPEED_MBPS=$((SPEED_MBPS + SPEED_MBPS_EXTRA))
-        SPEED_MBPS_DECIMAL=$((SPEED_MBPS_DECIMAL - SPEED_MBPS_EXTRA * 100))
-    fi
-    if [ $SPEED_MBPS_DECIMAL -lt 10 ]; then
-        SPEED_MBPS_DECIMAL="0${SPEED_MBPS_DECIMAL}"
-    fi
-    
-    echo ""
-    echo -e "${GREEN}=== RESUMEN DE PRUEBA ===${NC}"
-    echo -e "📊 Tiempo total: ${YELLOW}${TOTAL_TIME}${NC} segundos"
-    echo -e "📦 Datos enviados: ${YELLOW}${DATA_SIZE_MB}${NC} MB"
-    echo -e "🚀 Velocidad: ${GREEN}${SPEED_MB_S}.${SPEED_DECIMAL} MB/s${NC}"
-    echo -e "📈 Velocidad: ${BLUE}${SPEED_MBPS}.${SPEED_MBPS_DECIMAL} Mbps${NC}"
-    
-    # Interpretación
-    echo ""
-    echo -e "${BLUE}Interpretación:${NC}"
-    
-    # Usar velocidad en Mbps para comparación
-    SPEED_COMPARE=$SPEED_MB_S
-    
-    if [ $SPEED_COMPARE -ge 1000 ]; then
-        echo -e "${GREEN}✅🚀 EXCEPCIONAL (10Gbps+)${NC}"
-    elif [ $SPEED_COMPARE -ge 100 ]; then
-        echo -e "${GREEN}✅ Excelente (10Gbps)${NC}"
-    elif [ $SPEED_COMPARE -ge 50 ]; then
-        echo -e "${GREEN}✅ Muy buena (Gigabit+)${NC}"
-    elif [ $SPEED_COMPARE -ge 10 ]; then
-        echo -e "${GREEN}✅ Buena (Gigabit)${NC}"
-    elif [ $SPEED_COMPARE -ge 1 ]; then
-        echo -e "${YELLOW}⚠️ Aceptable (Fast Ethernet)${NC}"
+    # Calcular tiempo real
+    if command -v bc &> /dev/null; then
+        REAL_TIME=$(echo "$END_TIME - $START_TIME" | bc)
+        # Limitar a 2 decimales
+        REAL_TIME=$(printf "%.2f" $REAL_TIME)
     else
-        echo -e "${RED}❌ Lenta - Verificar conexión${NC}"
+        # Fallback si no hay bc
+        END_INT=$(date +%s)
+        START_INT=$(date +%s)
+        REAL_TIME=$((END_INT - START_INT))
+        if [ $REAL_TIME -eq 0 ]; then
+            REAL_TIME=1
+        fi
     fi
     
-    echo -e "${GREEN}========================${NC}"
+    # Limpiar archivo temporal
+    rm -f $TEMP_FILE
+    
+    # Calcular velocidad REAL
+    if command -v bc &> /dev/null; then
+        # Velocidad en MB/s
+        SPEED_MB=$(echo "scale=2; $TOTAL_MB / $REAL_TIME" | bc)
+        # Velocidad en Mbps
+        SPEED_MBPS=$(echo "scale=2; $SPEED_MB * 8" | bc)
+        # Velocidad en KB/s para conexiones lentas
+        SPEED_KB=$(echo "scale=0; $SPEED_MB * 1024" | bc)
+    else
+        # Cálculo entero sin bc
+        REAL_TIME_INT=${REAL_TIME%.*}
+        if [ -z "$REAL_TIME_INT" ] || [ "$REAL_TIME_INT" -eq 0 ]; then
+            REAL_TIME_INT=1
+        fi
+        SPEED_MB=$((TOTAL_MB / REAL_TIME_INT))
+        SPEED_MBPS=$((SPEED_MB * 8))
+        SPEED_KB=$((SPEED_MB * 1024))
+    fi
+    
+    # Mostrar resultados
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}           📊 RESULTADOS REALES${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "⏱️  Tiempo real: ${YELLOW}${REAL_TIME} segundos${NC}"
+    echo -e "📦 Datos enviados: ${YELLOW}${TOTAL_MB} MB${NC}"
+    echo -e "🚀 Velocidad: ${GREEN}${SPEED_MB} MB/s${NC}"
+    echo -e "📈 Velocidad: ${BLUE}${SPEED_MBPS} Mbps${NC}"
+    
+    # Mostrar en KB/s si es lento
+    if [ $(echo "$SPEED_MB < 1" | bc 2>/dev/null || echo "0") -eq 1 ]; then
+        echo -e "📉 Velocidad: ${YELLOW}${SPEED_KB} KB/s${NC}"
+    fi
+    
+    echo ""
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}📌 INTERPRETACIÓN PARA WIFI/LAN:${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    # Convertir a entero para comparar
+    SPEED_INT=$(echo "$SPEED_MB" | cut -d. -f1)
+    if [ -z "$SPEED_INT" ]; then
+        SPEED_INT=0
+    fi
+    
+    # Interpretación realista
+    if [ $SPEED_INT -ge 100 ]; then
+        echo -e "${GREEN}✅ EXCELENTE (${SPEED_MBPS} Mbps)${NC}"
+        echo -e "   Velocidad de Gigabit Ethernet"
+        echo -e "   Ideal para: Transferencias masivas, 4K/8K"
+    elif [ $SPEED_INT -ge 50 ]; then
+        echo -e "${GREEN}✅ MUY BUENA (${SPEED_MBPS} Mbps)${NC}"
+        echo -e "   Velocidad de WiFi 6 o Gigabit"
+        echo -e "   Ideal para: Gaming, streaming 4K"
+    elif [ $SPEED_INT -ge 25 ]; then
+        echo -e "${GREEN}✅ BUENA (${SPEED_MBPS} Mbps)${NC}"
+        echo -e "   Velocidad de WiFi 5 (AC) buena señal"
+        echo -e "   Ideal para: Streaming HD, trabajo remoto"
+    elif [ $SPEED_INT -ge 10 ]; then
+        echo -e "${YELLOW}⚠️ ACEPTABLE (${SPEED_MBPS} Mbps)${NC}"
+        echo -e "   Velocidad de WiFi 4 (N) o WiFi 5 lejos"
+        echo -e "   Ideal para: Navegación, YouTube HD"
+    elif [ $SPEED_INT -ge 5 ]; then
+        echo -e "${YELLOW}⚠️ REGULAR (${SPEED_MBPS} Mbps)${NC}"
+        echo -e "   Velocidad WiFi baja o con interferencia"
+        echo -e "   Puede tener problemas con video HD"
+    elif [ $SPEED_INT -ge 1 ]; then
+        echo -e "${RED}❌ LENTO (${SPEED_MBPS} Mbps)${NC}"
+        echo -e "   Velocidad muy baja para uso moderno"
+    else
+        echo -e "${RED}❌ MUY LENTO (${SPEED_KB} KB/s)${NC}"
+        echo -e "   Conexión extremadamente lenta"
+    fi
+    
+    echo ""
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}💡 RECOMENDACIONES:${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    if [ $SPEED_INT -ge 50 ]; then
+        echo -e "${GREEN}✓ Excelente rendimiento para cualquier uso${NC}"
+        echo -e "${GREEN}✓ Disfruta de tu conexión de alta velocidad${NC}"
+    elif [ $SPEED_INT -ge 25 ]; then
+        echo -e "${GREEN}✓ Buen rendimiento para la mayoría de usos${NC}"
+        echo -e "${YELLOW}• Para gaming: Conecta por cable si es posible${NC}"
+    elif [ $SPEED_INT -ge 10 ]; then
+        echo -e "${YELLOW}• Considera mejorar la señal WiFi${NC}"
+        echo -e "${YELLOW}• Acércate al router o cambia de canal${NC}"
+        echo -e "${YELLOW}• Para gaming: Usa cable Ethernet${NC}"
+    else
+        echo -e "${RED}• ¡Conecta por cable Ethernet!${NC}"
+        echo -e "${RED}• Revisa interferencias WiFi${NC}"
+        echo -e "${RED}• Cambia de canal WiFi (1, 6, 11)${NC}"
+        echo -e "${RED}• Considera un repetidor WiFi${NC}"
+    fi
+    
+    echo ""
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}Prueba completada ✓${NC}"
 }
 
 # Main
